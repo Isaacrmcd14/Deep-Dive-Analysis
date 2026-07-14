@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Dive → Proposal | Deal Flow Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#0a0a14; --ink-soft:#3d3d4e; --muted:#6b6b7d;
+  --bg:#fafafc; --card:#ffffff; --line:#e8e8ef;
+  --purple:#6d28d9; --violet:#8b5cf6; --lav:#ede9fe;
+  --green:#059669; --green-bg:#ecfdf5;
+  --amber:#d97706; --amber-bg:#fffbeb;
+  --red:#dc2626; --red-bg:#fef2f2;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(10,10,20,.92);backdrop-filter:blur(10px);color:#fff}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-weight:800;font-size:15px;letter-spacing:-.01em}
+.logo span{color:var(--violet)}
+nav ul{display:flex;gap:26px;list-style:none}
+nav a{color:#cfcfe0;text-decoration:none;font-size:13.5px;font-weight:500}
+nav a:hover{color:#fff}
+
+.hero{background:var(--ink);color:#fff;padding:88px 0 72px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-180px;top:-180px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.28),transparent 70%)}
+.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11.5px;font-weight:700;color:var(--violet);margin-bottom:16px}
+.hero h1{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1.08;max-width:820px}
+.hero p.sub{margin-top:20px;max-width:640px;color:#b9b9cc;font-size:17px}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:52px;position:relative;z-index:1}
+.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px 22px}
+.stat .n{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.stat .l{font-size:12.5px;color:#b9b9cc;margin-top:2px}
+.stat.adv .n{color:#6ee7b7}.stat.stl .n{color:#fcd34d}.stat.lst .n{color:#fca5a5}
+
+section{padding:76px 0}
+section.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;letter-spacing:-.025em;line-height:1.15;max-width:760px}
+.lede{color:var(--muted);margin-top:14px;max-width:700px;font-size:16px}
+
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:40px}
+.vcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;position:relative}
+.vcard .num{font-size:13px;font-weight:700;color:var(--violet)}
+.vcard h3{font-size:18px;font-weight:700;margin:8px 0 10px;letter-spacing:-.01em}
+.vcard p{font-size:14px;color:var(--ink-soft)}
+.verdict{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:4px 10px;border-radius:99px;margin-bottom:12px}
+.v-part{background:var(--amber-bg);color:var(--amber)}
+.v-supp{background:var(--green-bg);color:var(--green)}
+.v-new{background:var(--lav);color:var(--purple)}
+
+.chart-grid{display:grid;grid-template-columns:3fr 2fr;gap:22px;margin-top:40px}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.chart-card h4{font-size:14.5px;font-weight:700;margin-bottom:4px}
+.chart-card .note{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.chart-box{position:relative;height:340px}
+
+.filters{display:flex;gap:10px;margin-top:34px;flex-wrap:wrap}
+.fbtn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 18px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--ink-soft)}
+.fbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.deal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:24px}
+.deal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.deal:hover{box-shadow:0 8px 28px rgba(20,20,45,.08);transform:translateY(-2px)}
+.deal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.deal h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.b-adv{background:var(--green-bg);color:var(--green)}
+.b-stl{background:var(--amber-bg);color:var(--amber)}
+.b-lst{background:var(--red-bg);color:var(--red)}
+.b-flag{background:var(--lav);color:var(--purple);margin-left:6px}
+.deal .src{font-size:12.5px;color:var(--muted);margin-top:4px}
+.mini-bars{display:flex;gap:5px;margin-top:16px}
+.mb{flex:1;text-align:center}
+.mb .bar{height:44px;display:flex;align-items:flex-end;background:#f2f2f7;border-radius:5px;overflow:hidden}
+.mb .fill{width:100%;background:var(--violet);border-radius:5px 5px 0 0}
+.mb .lb{font-size:10px;color:var(--muted);margin-top:4px;font-weight:600}
+.mb.low .fill{background:#f0a3a3}
+.deal .reason{font-size:13px;color:var(--ink-soft);margin-top:14px}
+.deal .reason b{color:var(--ink)}
+.detail{display:none;margin-top:18px;border-top:1px dashed var(--line);padding-top:18px}
+.deal.open .detail{display:block}
+.detail .quote{background:var(--lav);border-left:3px solid var(--violet);border-radius:0 10px 10px 0;padding:12px 16px;font-size:13.5px;font-style:italic;color:var(--ink-soft);margin:12px 0}
+.detail table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.detail td{padding:5px 8px;border-bottom:1px solid var(--line);color:var(--ink-soft)}
+.detail td:first-child{font-weight:600;color:var(--ink);width:44%}
+.conf{font-size:11px;font-weight:700;letter-spacing:.05em}
+.expand-hint{font-size:11.5px;color:var(--violet);font-weight:600;margin-top:12px}
+
+.rubric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:38px}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;border-top:3px solid var(--line)}
+.rcard.h1{border-top-color:#f59e0b}
+.rcard.h2{border-top-color:#10b981}
+.rcard.alt-v{border-top-color:var(--violet)}
+.rcard .tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.rcard.h1 .tag{color:#b45309}.rcard.h2 .tag{color:#047857}.rcard.alt-v .tag{color:var(--purple)}
+.rcard h4{font-size:14.5px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+.rcard p{font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+.rubric-foot{margin-top:26px;font-size:13.5px;color:var(--muted);max-width:820px}
+
+.ev-select{margin-top:34px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ev-select label{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.ev-select select{font-family:inherit;font-size:14.5px;font-weight:600;padding:10px 42px 10px 16px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236d28d9' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+.ev-meta{font-size:12.5px;color:var(--muted)}
+.ev-table{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.ev-row{display:grid;grid-template-columns:230px 90px 1fr;border-bottom:1px solid var(--line)}
+.ev-row:last-child{border-bottom:none}
+.ev-row>div{padding:16px 18px}
+.ev-var{font-size:13px;font-weight:700}
+.ev-var .vk{color:var(--violet);margin-right:6px}
+.ev-var .origin{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:3px}
+.ev-score{display:flex;align-items:center}
+.pill{font-size:13px;font-weight:800;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.p5,.p4{background:var(--green-bg);color:var(--green)}
+.p3{background:var(--amber-bg);color:var(--amber)}
+.p2,.p1{background:var(--red-bg);color:var(--red)}
+.pne{background:#f2f2f7;color:var(--muted);font-size:10.5px}
+.ev-quote{font-size:13.5px;color:var(--ink-soft);font-style:italic;border-left:3px solid var(--lav)}
+.ev-quote .who{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:4px;font-weight:600}
+@media(max-width:860px){.rubric-grid{grid-template-columns:1fr 1fr}.ev-row{grid-template-columns:150px 70px 1fr}}
+@media(max-width:540px){.rubric-grid{grid-template-columns:1fr}.ev-row{grid-template-columns:1fr}}
+
+.method ol{margin:32px 0 0;list-style:none;counter-reset:step;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.method li{counter-increment:step;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.method li::before{content:"0" counter(step);font-weight:800;color:var(--violet);font-size:13px}
+.method li h4{font-size:16px;font-weight:700;margin:6px 0 8px}
+.method li p{font-size:13.5px;color:var(--ink-soft)}
+.caveat{margin-top:28px;background:var(--amber-bg);border:1px solid #fde68a;border-radius:14px;padding:18px 22px;font-size:13.5px;color:#7c5c0b}
+
+footer{background:var(--ink);color:#8f8fa5;padding:40px 0;font-size:12.5px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+@media(max-width:860px){
+  .stat-row,.cards3,.method ol{grid-template-columns:1fr 1fr}
+  .chart-grid,.deal-grid{grid-template-columns:1fr}
+  nav ul{display:none}
+}
+@media(max-width:540px){.stat-row,.cards3,.method ol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo">InstaLILY <span>/</span> Deal Flow Analysis</div>
+  <ul>
+    <li><a href="#findings">Findings</a></li>
+    <li><a href="#rubric">Rubric</a></li>
+    <li><a href="#variables">Variables</a></li>
+    <li><a href="#deals">Deal Explorer</a></li>
+    <li><a href="#evidence">Evidence</a></li>
+    <li><a href="#method">Methodology</a></li>
+  </ul>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">GTM Pipeline Analysis · July 2026</div>
+  <h1>Deep Dive → Proposal: why deals advance, and why they die.</h1>
+  <p class="sub">17 deals coded blind against an 8-variable rubric from raw call transcripts, then compared across outcomes to isolate what actually separates signed pilots from silent stalls.</p>
+  <div class="stat-row">
+    <div class="stat"><div class="n">17</div><div class="l">Deals analyzed · 100+ calls</div></div>
+    <div class="stat adv"><div class="n">7</div><div class="l">Advancing</div></div>
+    <div class="stat stl"><div class="n">9</div><div class="l">Stalled</div></div>
+    <div class="stat lst"><div class="n">1</div><div class="l">Lost (stated)</div></div>
+  </div>
+</div></header>
+
+<section id="findings"><div class="wrap">
+  <div class="eyebrow">Hypothesis test</div>
+  <h2>The biggest killer wasn't in the hypothesis.</h2>
+  <p class="lede">Two hypotheses went in — company bandwidth/motivation, and deal source/validation. Both matter, but a third variable dominates the loss column.</p>
+  <div class="cards3">
+    <div class="vcard">
+      <div class="num">H1</div>
+      <span class="verdict v-part">Partially supported</span>
+      <h3>Bandwidth kills; company health doesn't.</h3>
+      <p>Raw company health barely discriminates — nearly every deal in the funnel is a growing PE roll-up (avg 4.0 advancing vs 3.8 not). What separates outcomes is <b>bandwidth &amp; competing priorities</b>: budget/bandwidth averages 3.7 for advancing deals vs 2.5 for stalled/lost. Pharming is the purest H1 loss: FDA limbo + layoffs collapsed capacity to buy anything.</p>
+    </div>
+    <div class="vcard">
+      <div class="num">H2</div>
+      <span class="verdict v-supp">Supported — as a survival factor</span>
+      <h3>PE validation keeps deals alive, not won.</h3>
+      <p>Almost all deep-dive deals are decently sourced, so source alone can't separate wins. But the pattern is clear: <b>PE-mandated deals stall and revive</b> (ISN quiet 5 months → came back; Imperial Dade died → restarted via Bain; GLI froze for CVC's close → restarted). Conference-sourced deals (Boise, JCI, Merck) stall and simply drift.</p>
+    </div>
+    <div class="vcard">
+      <div class="num">H3</div>
+      <span class="verdict v-new">Unhypothesized — strongest signal</span>
+      <h3>Internal builds &amp; incumbents are the #1 killer.</h3>
+      <p>A competing internal AI team, in-house build, or incumbent vendor is the primary or secondary loss driver in <b>7 of 10 non-advancing deals</b>: Odevo's 15-engineer team, JCI's platform org, Renuity Brain, Pave America's PAVED, DTI insourcing, Merck's Google/Microsoft deals, Paschal's incumbent Netic. This is a positioning problem, not a bandwidth problem.</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="alt" id="rubric"><div class="wrap">
+  <div class="eyebrow">The rubric</div>
+  <h2>Eight variables, built to test the hypothesis — not confirm it.</h2>
+  <p class="lede">Two variables operationalize each starting hypothesis. The other five are alternative explanations added deliberately, so the hypothesis had to beat rival theories rather than run unopposed. Every score (1–5) must be anchored to a verbatim transcript quote; if no evidence exists, the variable is marked N/E rather than guessed.</p>
+  <div class="rubric-grid">
+    <div class="rcard h1"><div class="tag">Hypothesis 1</div><h4>A · Company health / growth</h4><p>Is the prospect growing, flat, or struggling? Formulated from the theory that growing companies can justify pilot spend and switching costs while stagnant ones can't. Scored from stated growth, M&A activity, market position, and distress signals.</p></div>
+    <div class="rcard h1"><div class="tag">Hypothesis 1</div><h4>B · Budget / bandwidth</h4><p>The second half of H1: stated capacity to spend ~$20k+ AND staff a 3-month pilot. Split from A because a healthy company can still be capacity-starved. Scored from explicit budget remarks, staffing commitments, and "we're stretched" language.</p></div>
+    <div class="rcard h2"><div class="tag">Hypothesis 2</div><h4>C · Deal source & validation</h4><p>Operationalizes H2: how they heard of InstaLILY, referral strength, PE mandate, connections to existing clients. Scored from intro provenance (PE operating partner > client referral > conference > cold) and whether a sponsor actively pushes the deal.</p></div>
+    <div class="rcard alt-v"><div class="tag">Control</div><h4>D · Champion strength</h4><p>Alternative explanation from sales literature: deals die when nobody inside pulls. Scored on seniority, internal authority, and engagement trajectory of the main contact(s) — a senior, active champion scores 5; a solo mid-level explorer scores 2–3.</p></div>
+    <div class="rcard alt-v"><div class="tag">Control</div><h4>E · Use-case clarity & urgency</h4><p>Controls for "they liked us but had nothing concrete to buy." Scored on how specific, quantified, and painful the problem is — "20 hours per quote" scores 5; "exploratory, many ideas" scores 2–3.</p></div>
+    <div class="rcard alt-v"><div class="tag">Control</div><h4>F · Technical / data readiness</h4><p>Controls for feasibility: systems landscape, data access, integration blockers. A single modern instance scores high; 10 ERPs, no APIs, or no master data scores low.</p></div>
+    <div class="rcard alt-v"><div class="tag">Control</div><h4>G · Pricing / pilot friction</h4><p>Controls for commercial objections independent of ability to pay: sticker shock, clawback demands, risk-share asks, model misfit (build-and-own vs recurring). 5 = price accepted without pushback.</p></div>
+    <div class="rcard alt-v"><div class="tag">Control</div><h4>H · Competing priorities / vendors</h4><p>Controls for crowd-out: internal builds, incumbent vendors, platform commitments, transformation overload. 5 = clear field. This control variable turned out to be the strongest discriminator in the dataset.</p></div>
+  </div>
+  <p class="rubric-foot">Coding protocol: each deal was scored by an isolated analysis pass that read the transcripts <b>blind to outcome</b> — scores were locked before any judgment about whether the deal advanced, so the outcome couldn't color the evidence. Deals with &gt;4 calls were sampled (first 2 + most recent 2, middle calls only to resolve gaps).</p>
+</div></section>
+
+<section id="variables"><div class="wrap">
+  <div class="eyebrow">Variable discrimination</div>
+  <h2>What actually separates advancing from stuck.</h2>
+  <p class="lede">Average rubric scores (1–5) by outcome group. Big gaps = predictive variables. Flat lines = things that feel important but don't discriminate.</p>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h4>Rubric scores: advancing vs. stalled/lost</h4>
+      <div class="note">Gap leaders: champion strength (+1.3), bandwidth (+1.2), competing priorities (+1.1). Non-factors: company health, data readiness.</div>
+      <div class="chart-box"><canvas id="varChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Primary loss driver (10 non-advancing deals)</h4>
+      <div class="note">Categorized from the most diagnostic evidence per deal.</div>
+      <div class="chart-box"><canvas id="lossChart"></canvas></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="deals"><div class="wrap">
+  <div class="eyebrow">Deal explorer</div>
+  <h2>Every deal, coded and quotable.</h2>
+  <p class="lede">Click any deal for full rubric scores, the most diagnostic quote, and the assessed close-lost reason with confidence level.</p>
+  <div class="filters" id="filters">
+    <button class="fbtn on" data-f="all">All 17</button>
+    <button class="fbtn" data-f="advancing">Advancing</button>
+    <button class="fbtn" data-f="stalled">Stalled</button>
+    <button class="fbtn" data-f="lost">Lost</button>
+  </div>
+  <div class="deal-grid" id="dealGrid"></div>
+</div></section>
+
+<section class="alt" id="evidence"><div class="wrap">
+  <div class="eyebrow">Evidence viewer</div>
+  <h2>See the quote behind every score.</h2>
+  <p class="lede">Select a deal to see the specific transcript evidence that informed each variable's score — every rating traces back to something someone actually said on a call.</p>
+  <div class="ev-select">
+    <label for="evSel">Deal:</label>
+    <select id="evSel"></select>
+    <span class="ev-meta" id="evMeta"></span>
+  </div>
+  <div class="ev-table" id="evTable"></div>
+</div></section>
+
+<section class="method" id="method"><div class="wrap">
+  <div class="eyebrow">Methodology</div>
+  <h2>Blind-coded, evidence-first, then compared.</h2>
+  <ol>
+    <li><h4>Fixed rubric, blind coding</h4><p>Each deal coded in isolation against 8 variables (company health, bandwidth, deal source, champion, use-case urgency, data readiness, pricing friction, competing priorities) — scored from transcript evidence <i>before</i> any outcome judgment, each score anchored to a verbatim quote.</p></li>
+    <li><h4>Outcome signal after scoring</h4><p>Only after scoring was each deal classified advancing / stalled / lost, with the close-lost reason graded STATED, IMPLIED, or INFERRED. Long deals were sampled (first 2 + last 2 calls) with middle calls pulled only to resolve gaps.</p></li>
+    <li><h4>Cross-deal comparison</h4><p>Score averages compared across outcome groups to find discriminating variables, with evidence-quality flags so thin transcripts (e.g. BMW's no-notetaker policy) aren't mistaken for weak deals.</p></li>
+  </ol>
+  <div class="caveat"><b>Caveats:</b> Outcome labels are transcript-inferred and partially confirmed — OMB Valves was manually reclassified to stalled (blind read said advancing) and remains unconfirmed. "Advancing" ≠ closed-won: several deals end at unsigned SOWs. Evidence quality varies by deal; BMW and Pave America have systematically thin records. n=17 — treat gaps as directional, not statistical proof.</div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>InstaLILY · Internal GTM analysis · Deep Dive → Proposal stage</div>
+  <div>Prepared July 2026 · Source: Fathom call transcripts, 17 deals</div>
+</div></footer>
+
+<script>
+const DEALS=[
+ {n:"Evident Scientific",o:"advancing",src:"PE referral — Bain Capital operating partner",s:{A:3,B:4,C:5,D:5,E:4,F:3,G:3,H:3},eq:"HIGH",
+  r:"Top risk: post-POC OPEX sensitivity under PE ownership; ~$500K run-rate needs KPI proof in 3–4 months.",c:"STATED",
+  q:"Of course, there will be maybe a return on investment in the future... but therefore, we have to reduce the cost. — Procurement, 05-19"},
+ {n:"Imperial Dade / Imperial Brady",o:"advancing",src:"PE referral — Bain Capital Summit (restart after dead 2025 thread)",s:{A:4,B:4,C:5,D:5,E:4,F:3,G:4,H:3},eq:"HIGH",
+  r:"Top risk: IT/security gatekeeper (Zach) + board approval as last gates before supply-chain SOW signs.",c:"STATED",
+  q:"I would sign supply chain today... the only real hurdle to clear there, Zach's got to sign off on security. — Jason Tillis, 06-05"},
+ {n:"Nations Roof",o:"advancing",src:"PE mandate — AEA portfolio program + SRS reference",s:{A:4,B:4,C:5,D:4,E:4,F:3,G:3,H:3},eq:"HIGH",
+  r:"Top risk: KPI/attribution ambiguity on twice-shifted margin use case; success criteria deferred to month one.",c:"STATED",
+  q:"How at the end of this do we say that was the reason why we... achieved margin? — Troy, 06-05"},
+ {n:"ISN / National Oak",o:"advancing",src:"Conference (Innovators) + SRS reference; survived 5-month stall",s:{A:5,B:4,C:5,D:5,E:5,F:3,G:2,H:2},eq:"MEDIUM",
+  r:"Top risk: fiscal-year budget meeting + untested attorney redlines; prior sticker shock stalled it once already.",c:"IMPLIED",
+  q:"We got a little sticker shock, but... it's really what we need long term. — Theron, 05-06"},
+ {n:"Gaming Labs International",o:"advancing",src:"PE mandate — CVC revenue diagnostic; 6-month freeze during acquisition close",s:{A:4,B:3,C:4,D:4,E:4,F:2,G:3,H:2},eq:"HIGH",
+  r:"Top risk: unresolved approval authority post-acquisition — Dec SOW already died once for the same governance reason.",c:"STATED",
+  q:"I'm in this phase where I still don't know who kind of approves it. — Champion, 07-01"},
+ {n:"Best Lighting Products",o:"advancing",src:"PE referral — Corinthian Capital operating partner",s:{A:4,B:3,C:5,D:4,E:3,F:2,G:3,H:2},eq:"HIGH",
+  r:"Top risk: Builder First project consumes the same core people; Sage 500 no-API integration costs; CRM with native AI agents in evaluation.",c:"IMPLIED",
+  q:"The project that is meant to wrap up in June is going to basically take priority over just about everything else. — Pam, 03-17"},
+ {n:"BMW of North America",o:"advancing",src:"Internal referral + ex-BMW advisor",s:{A:4,B:null,C:4,D:4,E:3,F:3,G:3,H:4},eq:"LOW",
+  r:"Top risk: enterprise procurement/consensus drag; champion department only ~6 weeks old with unsettled mandate.",c:"IMPLIED",
+  q:"We are in the middle of setting ourselves up... still building up the department. — KJ's team, 12-15"},
+ {n:"OMB Valves",o:"stalled",flag:true,src:"Client referral — via distributor + Harrington deployment",s:{A:4,B:4,C:4,D:4,E:5,F:3,G:4,H:2},eq:"HIGH",
+  r:"Blind read said advancing (owner accepted pricing). Reclassified stalled per CRM. Likely: decision delegated to change-fatigued committee amid competitive eval (Lunar) during traumatic Infor ERP migration.",c:"INFERRED",
+  q:"I will not be personally signing off this contract... I'll put together two or three options. Then I will sit down with my team. — Simone (owner), 05-07"},
+ {n:"Boise Cascade",o:"stalled",src:"Conference contact via colleague",s:{A:null,B:2,C:3,D:3,E:3,F:4,G:2,H:1},eq:"MEDIUM",
+  r:"Price above executive appetite (45–75k/mo anchor); single-threaded mid-level champion; competing internal genAI projects he wouldn't deprioritize.",c:"STATED",
+  q:"The price point is out of range for what my executives would be willing to spend. — Matt, 04-21"},
+ {n:"Drilling Tools International",o:"stalled",src:"AE's prior personal relationship + United Rentals reference",s:{A:4,B:3,C:4,D:3,E:4,F:3,G:4,H:2},eq:"MEDIUM",
+  r:"Insourced — flagship use case pulled in-house to existing coders + data cleanup; CFO champion faded, replaced by cost-averse contact.",c:"STATED",
+  q:"Falls more into like a machine learning algorithmic type approach... with our existing coders. — Jameson, 03-04"},
+ {n:"Johnson Controls",o:"stalled",src:"Conference (Doris outreach)",s:{A:4,B:3,C:3,D:3,E:5,F:3,G:4,H:2},eq:"HIGH",
+  r:"Absorbed by internal AI org building an overlapping platform (Expert Advisor); champion diluted; FY27 budget window slipped.",c:"IMPLIED",
+  q:"We will definitely not want to support three different chatbot applications. — Josip (internal AI lead), 06-19"},
+ {n:"Merck & Co.",o:"stalled",src:"Personal network + Reuters conference (three serial threads)",s:{A:4,B:3,C:3,D:3,E:2,F:2,G:3,H:1},eq:"HIGH",
+  r:"Crowded out by Google/Gemini + Copilot enterprise commitments; use case pivoted 3× without converging; no economic buyer ever appeared.",c:"IMPLIED",
+  q:"The agreements that we're in are so big and with such big partners that it's very hard to compete against them. — 06-09"},
+ {n:"Odevo",o:"stalled",src:"PE — CVC board member intro (mandate-driven)",s:{A:4,B:2,C:5,D:2,E:3,F:2,G:2,H:1},eq:"HIGH",
+  r:"Competing internal build — CTO decision-maker runs a 15-engineer team already shipping the same use case; engagement-model mismatch (wants consultative, InstaLILY sells build-and-own).",c:"STATED",
+  q:"If it's a binary... one side wins, the other loses. Then we're not going to talk. — Björn (CTO), 07-06"},
+ {n:"Pave America",o:"stalled",src:"PE — AEA-connected advisor (champion sat at the PE firm)",s:{A:4,B:2,C:5,D:4,E:3,F:4,G:4,H:2},eq:"MEDIUM",
+  r:"In-house build first — mid-rollout of own BidAssist/PAVED tools and SLMs; no internal owner converted PE enthusiasm into a scoped pilot.",c:"IMPLIED",
+  q:"We just want to get integration and implementation of what we currently have rolled out and then go from there. — COO's team, 02-06"},
+ {n:"Pharming Group",o:"stalled",src:"Client referral — live Kedrion deployment champion",s:{A:3,B:2,C:5,D:3,E:3,F:2,G:3,H:2},eq:"HIGH",
+  r:"Bandwidth/timing collapse — FDA Complete Response Letter, layoffs, leadership churn; mid-level champions with no big budgets; use case never converged across two brands.",c:"STATED",
+  q:"I apologize, I've been tough to reach. We've been drinking from a fire hose over here. — 03-19"},
+ {n:"Renuity Homes",o:"stalled",src:"PE — Greenbriar sponsor + SRS referral",s:{A:2,B:2,C:5,D:3,E:3,F:2,G:1,H:1},eq:"HIGH",
+  r:"Commercial-model misfit — buyer demanded one-time build-and-own with minimal recurring cost; internal 'Renuity Brain' build; competitive RFP; no master data.",c:"STATED",
+  q:"Renuity build one time... and then we pay a minimum to no recurring cost every year. — Shri relaying Mayank, 02-23"},
+ {n:"Paschal Air, Plumbing & Electric",o:"lost",src:"Investor/advisor referral (John Straus)",s:{A:5,B:2,C:4,D:3,E:3,F:4,G:1,H:1},eq:"MEDIUM",
+  r:"Incumbent displacement — 2-year call-center partner Netic, already ServiceTitan-integrated, asked for and won the pilot; $20k/mo POC with no risk-share failed the CEO's math; peak season froze capacity to Sept.",c:"STATED",
+  q:"It probably seems reasonable or prudent for us to let her take a stab at this just because she's already in operational. — CEO Charley Boyce, 06-23"}
+];
+
+const EV={
+"Evident Scientific":{A:["Our business model hasn't changed much over the last 20, 30 years... we could really stand for building some additional pipeline.","Hong / Jason · calls 05-19, 05-29"],B:["We're not going to negotiate the $75,000, which is... indeed acceptable.","Hong · 05-19"],C:["InstaLily has been helping us across our portfolio... 100% AI focus.","Darren Herman, Bain Capital operating partner · 03-20"],D:["All of us are itching to get started... so we can sign it and we keep moving.","Nithya (AI lead) · 05-27"],E:["Converting quotes to orders for us is a very manual process, reading the PDF... and typing it in the other system.","Sarma (CIO) · 03-20"],F:["Because we have 10 CRMs and 10 ERPs... I have to tweak it to account for the variances... 10 times.","Sarma · 03-20"],G:["That's unfortunately too expensive. So therefore, we need to find a solution here.","Oliver, procurement · 05-19 (resolved same call)"],H:["We're sort of going through a crash course meeting lots of different people.","Eric Anderson · 03-20; plus in-house agent builds"]},
+"Imperial Dade / Imperial Brady":{A:["We just have a huge, creaky business that has grown so much by acquisition... super aggressive value creation plan.","06-05"],B:["I would sign supply chain today... the only real hurdle, Zach's got to sign off on security.","Jason Tillis · 06-05; dedicated AI lead hired"],C:["We've worked with Olivia Howard, who Sonali works closely with, across other projects in the Bain portfolio.","12-19; originated at Bain Capital Summit"],D:["We're going to throw whatever we can at this to make it work.","Jason Tillis · 06-05; Sonali drives SOWs, board prep, legal"],E:["In my mind, supply chain's a no-brainer, like we just start running there, like that's easy.","Andrew Jacobs (AI lead) · 06-05"],F:["There's so many ERPs. There's a lot of complexity.","Sonali · 06-05; V1 confined to S2K (~50% of business)"],G:["We do like the first month at half rate or something, build up to it.","Jason Tillis · 06-05 — mild, collaboratively resolved"],H:["These PE guys are so interested in hiring major consulting firms to support AI strategy... we had to sort of fend them off.","Sonali · 06-05"]},
+"Nations Roof":{A:["Trying to double the size of the business here in a very short period of time.","CEO Robbie · 03-11"],B:["The 60 grand, which is 10K a month... 25 percent at UAT and 75% at the end? Sure. That's fine.","06-05; named tier-1 SMEs staffed"],C:["We're looking across the portfolio at ways that we can find advisors and partners who can support our companies on this digital slash AI journey.","Louie, AEA partner · 03-11; SRS reference"],D:["I would definitely say we were wanting to go forward... we carve out two, three of our better estimators.","Ryan (VP Ops) · 03-26"],E:["We're about a 22% closing ratio. We have a goal that we want to get to at least 30 this year.","Ryan · 03-26; scope shifted twice"],F:["The maturity of data or the volatility of data across sites... isn't there today.","Troy · 06-05; stack well mapped otherwise"],G:["We can't do an industry-wide non-compete, right?","Raghav · 05-15; IP clause, holdback — resolved cooperatively"],H:["We have a variety of initiatives underway to protect and enhance margin. So how at the end of this do we say that was the reason why?","Troy · 06-05"]},
+"ISN / National Oak":{A:["We're engaging in some M&A activity... I could potentially be doubling my field assets.","09-29; merging an acquisition in 3 weeks (05-06)"],B:["I'm working through the process... laying out a budget for our overall project.","05-28; 'not the most popular people with the amount of money we're requesting'"],C:["I saw this... while we were at the Innovators Conference.","09-29; SRS reference offered same call"],D:["The master data and getting it unified is the absolute most enabling thing that we can do.","Robert Beasley (new data exec) · 05-06; Theron leads transformation"],E:["That's our perfect utopia right there.","Max · 09-29; 'we don't have a unified view of the customer... we need to go faster' (05-06)"],F:["We do have two different ERPs.","09-29; legacy Universe/D3, duplicate records, but robust warehouse"],G:["Are we still looking at a $45,000 demonstration? To me, that seems a little bit pricey.","10-06; 'We got a little sticker shock' (Theron, 05-06)"],H:["We're talking to another company as well, so we're just kind of in the discovery phase.","Tom · 09-29; M&A + ERP transformation in parallel"]},
+"Gaming Labs International":{A:["We're 80, 82% of the market within gaming testing.","Steve Park · 06-25; CVC acquisition closed, growth mandate"],B:["I still don't know who kind of approves it... it could be James or it could be CVC, I don't know.","Champion · 07-01; no price pushback though"],C:["You guys had run through the audit with the partner... the use cases that he and James and you were really zeroing in on.","11-20; CVC revenue mandate"],D:["I'll be the primary driver towards somewhere in the mix, and we'll figure it out along with James.","06-25; but no sign-off power, no-showed 06-29"],E:["They make time, even if it's outside of their office hours... because this is high priority.","07-01; '70 or 80 use cases' needed corralling"],F:["Our data is all over the place... all fragmented all over the place, some manual, some automated.","06-25; finance DB even IT can't access"],G:["There was an SOW that was shared in December, but we needed to wait till all paperwork was finaled with CVC.","Jacob · 07-01 — process friction, not price"],H:["There's about 10,000 or so agents which are free.","06-25 re: D365 native agents; 'multiple different AI consulting firms' (07-01)"]},
+"Best Lighting Products":{A:["We got the factory up and running, shipped out the first container.","02-25; new Thailand factory, 30th year, Builder First launch"],B:["We're running a little bit lean at the moment as an organization.","03-17; no price objection but staffing thin"],C:["Tony Pacholo, who is an operating partner at Corinthian Capital... he's evaluated some AI stuff for other companies.","02-25; CEO even referred InstaLILY to bankers"],D:["We're bringing them on board... to say, hey, you help our guys get more sales.","CEO Jeff to his sales team · 05-01"],E:["Our salespeople... are not prospecting enough for new customers. I think we all agree on that.","02-25"],F:["It's a mess, but we're trying to put it all together in one bucket.","03-17; on-prem Sage 500, no API, pricing in external SQL/Access"],G:["I'd like to talk to them and then I'll save the answer... for after I talk to your referral customer.","Jeff · 05-06; decision gated on reference + MSA redlines"],H:["The project that is meant to wrap up in June is going to basically take priority over just about everything else.","Pam · 03-17; plus CRM candidate with native AI agents"]},
+"BMW of North America":{A:["Our department is exactly one month, 15 days old now... never existed for the customer support or after sales side.","12-15; BMW investing in new digitalization org"],B:["No captured discussion — contracting calls exist but BMW's no-notetaker policy cut every recording before substance.","N/E by design"],C:["Sagar and I were talking through what our data strategy really looks like... oh, have you heard of instalily.","12-15; internal referral + ex-BMW advisor"],D:["When we were shared the idea... we are really, really excited about it.","Akshit · 12-15; KJ heads support strategy & digitalization"],E:["Over 800 Tableau dashboards probably running right now that nobody even knows about.","12-15; real pain, but strategy 'still shaping'"],F:["We have a lot of data points in general... a lot of framework around our existing reporting.","12-15; fragmented; InstaLILY-hosted SLM resolved hosting"],G:["Obviously we need your feedback because you've been through this process with the particular people in the room many times.","02-12; proposal in 2nd revision for internal approvers"],H:["Everyone wants to be fast in the AI implementation... However, I don't think we have a good strategy in place.","12-15; no rival vendor named"]},
+"OMB Valves":{A:["We generate around 4,000 requests... for around 4 billion, to generate around 200 million dollars of order.","Simone (owner) · 05-07; but Infor ERP pain: 'lost 9 million of revenues'"],B:["I'm not surprised about the pricing... I'm okay with the number you gave me.","Simone · 05-07; 'this is an area we have decided to invest'"],C:["We came to you because you are working with one of our distributors... I have seen something that you did for Harrington.","Simone · 05-07"],D:["If you can also share the transcription... I will be more than happy to show it to Simone, who is the owner.","Daniele (R&D) · 04-29 — escalated to owner in 2 weeks"],E:["It'll take one of my experienced guy 20 hours. How can I squeeze those 20 hours down to one hour?","Simone · 05-07"],F:["Infor has all the API that you will require.","05-07; but IOGP compliance mandates manual steps, no consumer LLMs"],G:["I don't trust by nature anybody in the IT development that gave me a timeline that is realistic.","Simone · 05-07; price accepted, timeline distrust"],H:["We are looking around, we have had a couple of discussions with other teams... We spoke with Lunar.","Simone · 05-07; Infor migration: '60% of my people on the verge of resigning'"]},
+"Boise Cascade":{A:["No revenue/growth statements found — only scale references: 'It affects 35 of our distribution centers.'","N/E · 04-21"],B:["The price point is out of range for what my executives would be willing to spend.","Matt · 04-21"],C:["He's like, I'm like, Chris, we need to talk to some more vendors... And he's like, I just met somebody.","03-20 — conference contact via colleague, no PE/referral"],D:["I was just so energized into the conversation... I don't even know how much this costs.","Matt · 04-21; engaged but mid-level, came alone"],E:["You're more in the exploratory phase instead of coming to us with a direct problem.","Jacob (InstaLILY) · 04-21 — unchallenged by prospect"],F:["Our ERP... called Agility... it's got a thousand and one API connections to go scan and retrieve.","03-20"],G:["45–75k/mo quote landed hard; InstaLILY walked back to '10 to 20k a month' on the same call.","04-21"],H:["I'm in the middle of a different generative AI project that I'm a little worried competes with this.","Matt · 04-21; +3 vendors, internal automation shop, bin-packing vendor"]},
+"Drilling Tools International":{A:["We got acquired by DTI, I think, a year and four or five months ago.","Jella · 03-04; public co., acquisitive, investor conferences"],B:["The cost and the scope... is money well spent.","Jameson · 03-04; but internal coders + data cleanup absorbed staffing"],C:["Travis taught me everything I knew.","Tyler · 11-11 — AE's prior personal relationship; United Rentals reference resonated"],D:["I know we went kind of radio silent after December.","Jameson · 03-04; CFO engaged early then handed off and cooled"],E:["Before I pull a new piece in, I want to exhaust every possible outcome in our existing fleet. That's just humanly not possible.","David (CFO) · 11-11"],F:["Near-term projects we need to work on from data quality that... involve going to the shop, measuring tools.","Jameson · 03-04 — contradicting earlier 'best input data' claims"],G:["That POC would just kind of be a flat fee... Okay. No, it's good.","David · 11-11 — absorbed without objection"],H:["We're going to focus on that more so than kicking off a big project with you all.","Jameson · 03-04 — internal coders/ML, Power BI migration"]},
+"Johnson Controls":{A:["I've got an offering that we're going to bring to the market in the fall... we've got 10,000 units that need to be replaced.","Greg · 04-17"],B:["Right now is when we're soliciting ideation on what goes into spend for 2027.","Greg · 04-17 — budget exists but gated to FY27 CapEx cycle"],C:["Luckily, Doris was very diligent to reach out, and we were able to chat while I was out there.","Greg · 04-17 — conference meet, no referral or PE mandate"],D:["There's other people in JCI at different parts of the organization that will make the decisions... we can make recommendations.","Frank · 04-23"],E:["In the ideal world, that visit should have never happened... Every time we dispatch a service tech on site, that is the most costly part.","Frank · 04-23"],F:["There is what I call pollution in the data because there is no standard descriptor.","Frank · 04-23; virtual data merge available, US-only rules"],G:["Depending on pricing and everything else, would probably look like end of Q4, beginning of Q1.","Dustin · 05-14 — no pushback, but no dollar figure ever presented"],H:["This second solution is very similar to expert advisor, the Gentic platform we're building.","Josip (internal AI org) · 06-19; plus other vendors knocking"]},
+"Merck & Co.":{A:["We'll have a huge oncology portfolio.","06-09; global pharma investing heavily in AI"],B:["We're going to have to talk about... what the capability is going to cost and whether we can get to that ROI level.","04-10 — money exists, none committed"],C:["Sudhir and I, Sumo, we worked previously together at General Motors at Cadillac.","11-06; warm personal/conference contacts, no exec sponsor"],D:["I appreciate, again, Patrick, you quarterbacking this.","06-08 — active but mid-level, defers to group consensus"],E:["This communications piece is a bit of a newer problem.","06-08; use case pivoted procurement→sales→comms→MDM, serves ~5 people"],F:["It is the integration of the systems... far more significant in my mind.","Patrick · 06-08 — names data access as biggest timing risk"],G:["To apologize on behalf of Merck for not being as fast as we would like to be.","06-08 — no price pushback, procurement pre-flagged slow"],H:["There is as much as transformation folks can digest in one year.","06-08; Google/Gemini deal, Copilot academy, GPTeal, Viva migration"]},
+"Odevo":{A:["It's effectively a roll-up in the global residential property management industry.","05-05; ~11,000 employees, acquisitive, hiring US CTO/CDO"],B:["The number of projects that we're running at the same point in time vastly exceeds my ability to oversee and steer all of them.","Björn (CTO) · 06-10; 'we can spend the money' — bandwidth is the constraint"],C:["I'm on the board of Radwell and WEX on this list.","John Zacharias (CVC board) · 04-01; CVC re-engaged mid-deal"],D:["I gotta understand why you guys will do a better job than anybody else for us.","Björn · 06-10 — C-level contacts are skeptical evaluators, not pullers"],E:["We roughly think that 20% to 30% of that volume is... relatively easily resolved by AI.","07-06; but 'we don't need that today... we don't have any problems' (05-05)"],F:["We don't have a single HubSpot instance... let it be 50 HubSpot instances, and they're all looking different.","05-05; cases live in individual inboxes"],G:["I'm not going to give blank checks.","Björn · 06-10; demands consultative middle-way InstaLILY doesn't sell"],H:["It is built internally at this point in time... it's live and in use.","Björn · 07-06 — 15+ engineers on the exact use case; 'hammered by tons of suppliers'"]},
+"Pave America":{A:["An aggregation of about... roughly 30 offices across the United States... we could do a lot more.","Paul Garner · 02-02"],B:["We need to baby step into the whole AI piece... I can't really tell you what the next phase would be.","02-06"],C:["They've really impressed our leadership team.","Jim Coleman (AEA-connected) · 02-02; SRS/AEA portfolio track record"],D:["That was the trigger for me in getting this going with you guys.","Jim Coleman · 02-02 — but champion is PE-side, not internal"],E:["How do you get a foreman in a box... a scheduler in a box, a collections agent in a box.","02-02 — many ideas, none committed or urgent"],F:["A lot of our tools and systems and data structures are set up in a way to... be leveraged.","02-02; unified PavementSoft data, own SLMs"],G:["The business model would be interesting to learn about... ownership, which was a big deal for us.","02-02 — curiosity, never negotiated"],H:["One of the things we don't want is multiple platforms.","02-06 — in-house BidAssist/PAVED rollout + lead-gen vendor"]},
+"Pharming Group":{A:["We should be a billion-dollar company within the few years — vs — we're starting to see a little bit of a slowdown... competition has gotten a lot more fierce.","12-09 vs 03-19"],B:["I know we're a small company, we don't have big budgets.","03-19; 'half my team was torpedoed'"],C:["A good friend and former colleague of mine... he says, I mean, the results are really, really incredible.","04-23 — warm referral from live Kedrion deployment"],D:["Before we get to that point, what I'd like to do is socialize this a little bit... with my boss.","Don · 01-21 — engaged but mid-level, needs upward approval"],E:["How do we accelerate patient finding? That's the biggest barrier we've got right now on the joint side.","03-19; two brands' use cases never converged"],F:["The data is in different places and we would have to start putting stuff together... there's so much data blockage.","04-23; niche SteepRock CRM, no feedback loop"],G:["Pilots are charged between, say, 20 to 25K a month — met with only 'Okay. Great. That's helpful.'","01-21 — no pushback, but no budget commitment either"],H:["We're kind of in a holding pattern because the FDA decision.","03-19; plus Clarida AI project and possible CRM migration"]},
+"Renuity Homes":{A:["It's been a tough couple quarters, and we're doing some foundational work to fix that first.","Nirav · 04-22"],B:["These numbers do not go ahead... somehow I would not be able to justify this cost on an annual basis.","Shri relaying Mayank · 02-23"],C:["Patrick is the way we've got intro to you... he uses Instalily deployed across other businesses within the Greenbrier portfolio.","12-19 / 04-22"],D:["Champion churned: Mayank drove POC scoping in Dec; by April the contact was Nirav — 'this is my 13th day here.'","12-19 → 04-15"],E:["I wouldn't even say we're ready to utilize a tool with this kind of capability yet.","Nirav · 04-22; scope churned across 4+ use cases"],F:["We do not have a master data discipline... There is no concept of master data at this point in time here.","Mayank · 01-15"],G:["He was looking at something which can be more of Renuity build one time... and then we pay a minimum to no recurring cost every year.","Shri · 02-23 — direct model misfit"],H:["Thank you, everyone, for responding to the RFP... discuss with you and the other companies as well.","Shri · 02-23; internal 'Renuity Brain' build in parallel"]},
+"Paschal Air, Plumbing & Electric":{A:["Although we are growing rapidly and we are certainly able to innovate and remain nimble.","CFO · 06-23; ~400 people, 10–12 acquisitions since 2020"],B:["Our ability to just float... significant investments on our balance sheet with, candidly, like blue skies is a little bit more challenging.","CFO · 06-23"],C:["I underscored, I think it's the best, highest quality HVAC company in America.","John Straus (investor/advisor who brokered intro) · 05-05"],D:["The opportunity is there. think we all recognize that.","CEO Charley · 06-01 — CEO/CFO engaged, but nobody pulled for InstaLILY over the incumbent"],E:["The under $75 warranty submissions, which you guys aren't even doing right now.","06-01 — crisp use case, urgency deferred: 'pencils down' through peak season"],F:["All of those 12 locations are all on one Service Titan instance.","05-05; minor ServiceTitan API-limit questions"],G:["Does Paschal just eat the 60 grand? Or is [InstaLILY] willing to institute some sort of clawback? ... I'm struggling to kind of make that math work.","CFO + CEO · 06-01"],H:["It probably seems reasonable or prudent for us to let her take a stab at this just because she's already in operational and she has a track record.","CEO · 06-23 — incumbent Netic won the pilot"]}
+};
+const ORIGIN={A:"Hypothesis 1",B:"Hypothesis 1",C:"Hypothesis 2",D:"Control",E:"Control",F:"Control",G:"Control",H:"Control"};
+const VNAMES={A:"Company health / growth",B:"Budget / bandwidth",C:"Deal source & validation",D:"Champion strength",E:"Use-case clarity & urgency",F:"Technical / data readiness",G:"Pricing / pilot friction",H:"Competing priorities / vendors"};
+
+const VARS=["A Health","B Bandwidth","C Source","D Champion","E Use case","F Data","G Pricing","H Priorities"];
+const KEYS=["A","B","C","D","E","F","G","H"];
+function avg(group,k){const v=group.map(d=>d.s[k]).filter(x=>x!=null);return v.reduce((a,b)=>a+b,0)/v.length}
+const adv=DEALS.filter(d=>d.o==="advancing"),non=DEALS.filter(d=>d.o!=="advancing");
+
+new Chart(document.getElementById("varChart"),{type:"bar",data:{labels:VARS,datasets:[
+ {label:"Advancing (7)",data:KEYS.map(k=>+avg(adv,k).toFixed(2)),backgroundColor:"#6d28d9",borderRadius:6},
+ {label:"Stalled / Lost (10)",data:KEYS.map(k=>+avg(non,k).toFixed(2)),backgroundColor:"#d8d2ea",borderRadius:6}]},
+ options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:5,grid:{color:"#efeff5"}},x:{grid:{display:false},ticks:{font:{size:11}}}},plugins:{legend:{position:"top",labels:{boxWidth:14,font:{size:12}}}}}});
+
+new Chart(document.getElementById("lossChart"),{type:"doughnut",data:{
+ labels:["Internal build / incumbent / platform (6)","Pricing & commercial model (2)","Bandwidth / timing collapse (1)","Unconfirmed — flagged (1)"],
+ datasets:[{data:[6,2,1,1],backgroundColor:["#6d28d9","#a78bfa","#fbbf24","#e5e7eb"],borderWidth:2,borderColor:"#fff"}]},
+ options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11.5},padding:10}}}}});
+
+const grid=document.getElementById("dealGrid");
+const bcls={advancing:"b-adv",stalled:"b-stl",lost:"b-lst"};
+function render(f){
+ grid.innerHTML="";
+ DEALS.filter(d=>f==="all"||d.o===f).forEach(d=>{
+  const el=document.createElement("div");el.className="deal";
+  const bars=KEYS.map((k,i)=>{const v=d.s[k];
+   return `<div class="mb ${v!=null&&v<=2?"low":""}"><div class="bar"><div class="fill" style="height:${v==null?0:v*20}%"></div></div><div class="lb">${k}${v==null?"·NE":""}</div></div>`}).join("");
+  el.innerHTML=`<div class="deal-head"><div><h3>${d.n}</h3><div class="src">${d.src}</div></div>
+   <div><span class="badge ${bcls[d.o]}">${d.o}</span>${d.flag?'<span class="badge b-flag">⚠ unconfirmed</span>':""}</div></div>
+   <div class="mini-bars">${bars}</div>
+   <div class="reason"><b>${d.o==="advancing"?"Top risk":"Assessed reason"}:</b> ${d.r}</div>
+   <div class="expand-hint">Click for quote & detail ↓</div>
+   <div class="detail">
+     <div class="quote">"${d.q}"</div>
+     <table>
+       <tr><td>Confidence</td><td class="conf">${d.c}</td></tr>
+       <tr><td>Evidence quality</td><td>${d.eq}</td></tr>
+       <tr><td>Scores (A–H)</td><td>${KEYS.map(k=>d.s[k]==null?"N/E":d.s[k]).join(" · ")}</td></tr>
+     </table>
+   </div>`;
+  el.addEventListener("click",()=>el.classList.toggle("open"));
+  grid.appendChild(el);
+ });
+}
+render("all");
+
+// Evidence viewer
+const evSel=document.getElementById("evSel"),evTable=document.getElementById("evTable"),evMeta=document.getElementById("evMeta");
+DEALS.forEach(d=>{const o=document.createElement("option");o.value=d.n;o.textContent=d.n;evSel.appendChild(o)});
+function pillCls(v){return v==null?"pne":"p"+v}
+function renderEv(name){
+ const d=DEALS.find(x=>x.n===name),ev=EV[name]||{};
+ evMeta.textContent=`Outcome: ${d.o}${d.flag?" (unconfirmed)":""} · Evidence quality: ${d.eq} · ${d.src}`;
+ evTable.innerHTML=KEYS.map(k=>{
+  const v=d.s[k],e=ev[k]||["No evidence recorded.",""];
+  return `<div class="ev-row">
+    <div class="ev-var"><span class="vk">${k}</span>${VNAMES[k]}<span class="origin">${ORIGIN[k]}</span></div>
+    <div class="ev-score"><span class="pill ${pillCls(v)}">${v==null?"N/E":v}</span></div>
+    <div class="ev-quote">"${e[0]}"<span class="who">${e[1]}</span></div>
+  </div>`}).join("");
+}
+evSel.addEventListener("change",()=>renderEv(evSel.value));
+renderEv(DEALS[0].n);
+
+document.getElementById("filters").addEventListener("click",e=>{
+ if(!e.target.dataset.f)return;
+ document.querySelectorAll(".fbtn").forEach(b=>b.classList.remove("on"));
+ e.target.classList.add("on");render(e.target.dataset.f);
+});
+</script>
+</body>
+</html>
