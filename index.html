@@ -125,6 +125,39 @@ h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;letter-spacing:-.025em;line-
 @media(max-width:860px){.rubric-grid{grid-template-columns:1fr 1fr}.ev-row{grid-template-columns:150px 70px 1fr}}
 @media(max-width:540px){.rubric-grid{grid-template-columns:1fr}.ev-row{grid-template-columns:1fr}}
 
+.proto{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.pcard h4{font-size:14.5px;font-weight:700;margin-bottom:6px}
+.pcard p{font-size:13.5px;color:var(--ink-soft)}
+.pcard code{background:var(--lav);color:var(--purple);border-radius:6px;padding:1px 7px;font-size:12.5px;font-weight:600;font-family:inherit}
+.varblock{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;margin-top:22px;border-left:4px solid var(--violet)}
+.varblock.h1v{border-left-color:#f59e0b}
+.varblock.h2v{border-left-color:#10b981}
+.varblock .vtag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:4px 10px;border-radius:99px;background:var(--lav);color:var(--purple);margin-bottom:10px}
+.varblock.h1v .vtag{background:var(--amber-bg);color:#b45309}
+.varblock.h2v .vtag{background:var(--green-bg);color:#047857}
+.varblock h3{font-size:19px;font-weight:800;letter-spacing:-.015em;margin-bottom:10px}
+.varblock h3 .vk{color:var(--violet);margin-right:8px}
+.varblock p{font-size:14px;color:var(--ink-soft);margin-bottom:8px}
+.varblock p b{color:var(--ink)}
+.anchors{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.anch{border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--ink-soft)}
+.anch .n{font-weight:800;font-size:13px;display:block;margin-bottom:3px}
+.anch.a5 .n{color:var(--green)}.anch.a3 .n{color:var(--amber)}.anch.a1 .n{color:var(--red)}
+.bvh{background:var(--ink);color:#fff;border-radius:20px;padding:34px;margin-top:30px}
+.bvh h3{font-size:20px;font-weight:800;letter-spacing:-.015em;margin-bottom:14px}
+.bvh p{font-size:14.5px;color:#c9c9dc;margin-bottom:12px}
+.bvh b{color:#fff}
+.bvh .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.bvh .col{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:18px}
+.bvh .col h5{font-size:13px;font-weight:700;color:var(--violet);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.bvh .col h5.bcol{color:#6ee7b7}
+.bvh .col p{font-size:13px;margin-bottom:6px}
+.fmt{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;margin-top:26px;overflow-x:auto}
+.fmt pre{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;color:var(--ink-soft);white-space:pre}
+.fmt pre .hd{color:var(--purple);font-weight:700}
+@media(max-width:760px){.proto,.anchors,.bvh .cols{grid-template-columns:1fr}}
+
 .method ol{margin:32px 0 0;list-style:none;counter-reset:step;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .method li{counter-increment:step;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
 .method li::before{content:"0" counter(step);font-weight:800;color:var(--violet);font-size:13px}
@@ -154,6 +187,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     <li><a href="#deals">Deal Explorer</a></li>
     <li><a href="#evidence">Evidence</a></li>
     <li><a href="#method">Methodology</a></li>
+    <li><a href="#scoring">Scoring Guide</a></li>
   </ul>
 </div></nav>
 
@@ -200,16 +234,16 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   <h2>Eight variables, built to test the hypothesis — not confirm it.</h2>
   <p class="lede">Two variables operationalize each starting hypothesis. The other five are alternative explanations added deliberately, so the hypothesis had to beat rival theories rather than run unopposed. Every score (1–5) must be anchored to a verbatim transcript quote; if no evidence exists, the variable is marked N/E rather than guessed.</p>
   <div class="rubric-grid">
-    <div class="rcard h1"><div class="tag">Hypothesis 1</div><h4>A · Company health / growth</h4><p>Is the prospect growing, flat, or struggling? Formulated from the theory that growing companies can justify pilot spend and switching costs while stagnant ones can't. Scored from stated growth, M&A activity, market position, and distress signals.</p></div>
-    <div class="rcard h1"><div class="tag">Hypothesis 1</div><h4>B · Budget / bandwidth</h4><p>The second half of H1: stated capacity to spend ~$20k+ AND staff a 3-month pilot. Split from A because a healthy company can still be capacity-starved. Scored from explicit budget remarks, staffing commitments, and "we're stretched" language.</p></div>
-    <div class="rcard h2"><div class="tag">Hypothesis 2</div><h4>C · Deal source & validation</h4><p>Operationalizes H2: how they heard of InstaLILY, referral strength, PE mandate, connections to existing clients. Scored from intro provenance (PE operating partner > client referral > conference > cold) and whether a sponsor actively pushes the deal.</p></div>
-    <div class="rcard alt-v"><div class="tag">Control</div><h4>D · Champion strength</h4><p>Alternative explanation from sales literature: deals die when nobody inside pulls. Scored on seniority, internal authority, and engagement trajectory of the main contact(s) — a senior, active champion scores 5; a solo mid-level explorer scores 2–3.</p></div>
-    <div class="rcard alt-v"><div class="tag">Control</div><h4>E · Use-case clarity & urgency</h4><p>Controls for "they liked us but had nothing concrete to buy." Scored on how specific, quantified, and painful the problem is — "20 hours per quote" scores 5; "exploratory, many ideas" scores 2–3.</p></div>
-    <div class="rcard alt-v"><div class="tag">Control</div><h4>F · Technical / data readiness</h4><p>Controls for feasibility: systems landscape, data access, integration blockers. A single modern instance scores high; 10 ERPs, no APIs, or no master data scores low.</p></div>
-    <div class="rcard alt-v"><div class="tag">Control</div><h4>G · Pricing / pilot friction</h4><p>Controls for commercial objections independent of ability to pay: sticker shock, clawback demands, risk-share asks, model misfit (build-and-own vs recurring). 5 = price accepted without pushback.</p></div>
-    <div class="rcard alt-v"><div class="tag">Control</div><h4>H · Competing priorities / vendors</h4><p>Controls for crowd-out: internal builds, incumbent vendors, platform commitments, transformation overload. 5 = clear field. This control variable turned out to be the strongest discriminator in the dataset.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>A · Company health / growth</h4><p>Is the prospect growing, flat, or struggling? Formulated from the theory that growing companies can justify pilot spend and switching costs while stagnant ones can't. Scored from stated growth, M&A activity, market position, and distress signals.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>B · Budget / bandwidth</h4><p>The second half of H1: stated capacity to spend ~$20k+ AND staff a 3-month pilot. Split from A because a healthy company can still be capacity-starved. Scored from explicit budget remarks, staffing commitments, and "we're stretched" language.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>C · Deal source & validation</h4><p>Operationalizes H2: how they heard of InstaLILY, referral strength, PE mandate, connections to existing clients. Scored from intro provenance (PE operating partner > client referral > conference > cold) and whether a sponsor actively pushes the deal.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>D · Champion strength</h4><p>Alternative explanation from sales literature: deals die when nobody inside pulls. Scored on seniority, internal authority, and engagement trajectory of the main contact(s) — a senior, active champion scores 5; a solo mid-level explorer scores 2–3.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>E · Use-case clarity & urgency</h4><p>Controls for "they liked us but had nothing concrete to buy." Scored on how specific, quantified, and painful the problem is — "20 hours per quote" scores 5; "exploratory, many ideas" scores 2–3.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>F · Technical / data readiness</h4><p>Controls for feasibility: systems landscape, data access, integration blockers. A single modern instance scores high; 10 ERPs, no APIs, or no master data scores low.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>G · Pricing / pilot friction</h4><p>Controls for commercial objections independent of ability to pay: sticker shock, clawback demands, risk-share asks, model misfit (build-and-own vs recurring). 5 = price accepted without pushback.</p></div>
+    <div class="rcard alt-v"><div class="tag">Variable</div><h4>H · Competing priorities / vendors</h4><p>Controls for crowd-out: internal builds, incumbent vendors, platform commitments, transformation overload. 5 = clear field. This control variable turned out to be the strongest discriminator in the dataset.</p></div>
   </div>
-  <p class="rubric-foot">Coding protocol: each deal was scored by an isolated analysis pass that read the transcripts <b>blind to outcome</b> — scores were locked before any judgment about whether the deal advanced, so the outcome couldn't color the evidence. Deals with &gt;4 calls were sampled (first 2 + most recent 2, middle calls only to resolve gaps).</p>
+  <p class="rubric-foot">Coding protocol: each deal was scored by an isolated analysis pass that read the transcripts <b>blind to outcome</b> — scores were locked before any judgment about whether the deal advanced, so the outcome couldn't color the evidence. Deals with &gt;4 calls were sampled (first 2 + most recent 2, middle calls only to resolve gaps). <a href="#scoring" style="color:var(--purple);font-weight:600">Full scoring guide with anchors and the B-vs-H distinction →</a></p>
 </div></section>
 
 <section id="variables"><div class="wrap">
@@ -255,6 +289,143 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   <div class="ev-table" id="evTable"></div>
 </div></section>
 
+<section id="scoring"><div class="wrap">
+  <div class="eyebrow">Scoring guide · Rubric v1</div>
+  <h2>How every deal was scored.</h2>
+  <p class="lede">The full rubric, variable definitions, scoring anchors, and the coding protocol — reusable for scoring any future deep-dive deal.</p>
+
+  <div class="proto">
+    <div class="pcard"><h4>1 · Quote-anchored scores</h4><p>Each variable scored <code>1–5</code> (1 = strong negative signal, 5 = strong positive). Every score requires one verbatim quote (≤25 words) plus the call date. No evidence → <code>N/E</code>, never guessed.</p></div>
+    <div class="pcard"><h4>2 · Blind coding</h4><p>All eight variables are scored from transcript evidence <b>before</b> forming any view on the outcome. Only after scores are locked is the deal classified advancing / stalled / lost — so the outcome can't color the evidence read.</p></div>
+    <div class="pcard"><h4>3 · Sampled reading</h4><p>≤4 unique calls → read all. &gt;4 calls → read first 2 + most recent 2 by date; pull middle calls only to resolve N/E or ambiguity. Same-date, similar-size files checked as duplicate captures and deduped.</p></div>
+    <div class="pcard"><h4>4 · Graded confidence</h4><p>Close-lost reasons graded <code>STATED</code> (said explicitly on a call), <code>IMPLIED</code> (strong contextual signal), or <code>INFERRED</code> (analyst judgment). Each deal also carries an evidence-quality flag (HIGH / MEDIUM / LOW) so thin transcripts aren't mistaken for weak deals.</p></div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable</span>
+    <h3><span class="vk">A</span>Company health / growth</h3>
+    <p><b>Definition:</b> The prospect's overall business trajectory — growing, flat, or struggling — independent of this deal.</p>
+    <p><b>Evidence:</b> Stated revenue/growth remarks, M&amp;A activity, new facilities or products, market position, distress signals (layoffs, lost revenue, "tough quarters").</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>Explicit strong growth or dominant market position</div>
+      <div class="anch a3"><span class="n">3</span>Stable / mixed signals</div>
+      <div class="anch a1"><span class="n">1</span>Stated decline or distress</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable</span>
+    <h3><span class="vk">B</span>Budget / bandwidth</h3>
+    <p><b>Definition:</b> The prospect's stated <b>capacity</b> to fund (~$20k+) and staff a 3-month pilot. This is about whether they <i>can</i> — money in the budget, people who can be assigned, an approver who can sign.</p>
+    <p><b>Evidence:</b> Direct budget remarks ("we don't have big budgets," "I'm okay with the number"), staffing commitments ("we'll carve out two, three of our better estimators"), lean-organization language, unresolved signing authority.</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>Budget affirmed and people named</div>
+      <div class="anch a3"><span class="n">3</span>Money exists but not committed, or approver unclear</div>
+      <div class="anch a1"><span class="n">1</span>Explicit inability to justify the cost or staff the work</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable</span>
+    <h3><span class="vk">C</span>Deal source &amp; external validation</h3>
+    <p><b>Definition:</b> How the deal originated and how much third-party credibility backs it.</p>
+    <p><b>Evidence:</b> Intro provenance ranked roughly: PE operating-partner mandate &gt; referral from a live client deployment &gt; personal relationship &gt; conference contact &gt; cold. Plus whether a sponsor actively pushes (board pressure, portfolio program) and whether they cite proof from existing InstaLILY clients.</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>PE mandate or client referral with active sponsor push</div>
+      <div class="anch a3"><span class="n">3</span>Warm but passive connection</div>
+      <div class="anch a1"><span class="n">1</span>Cold / no validation</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable</span>
+    <h3><span class="vk">D</span>Champion strength</h3>
+    <p><b>Definition:</b> Whether someone inside the account has the seniority, authority, and sustained engagement to pull the deal through.</p>
+    <p><b>Evidence:</b> Title/authority of the main contact, whether they recruit colleagues and executives, engagement trajectory (deepening vs. going quiet, handoffs to junior people, no-shows).</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>Senior owner actively driving ("we'll throw whatever we can at this")</div>
+      <div class="anch a3"><span class="n">3</span>Engaged but mid-level or needs upward approval</div>
+      <div class="anch a1"><span class="n">1</span>Evaluator-not-puller, or champion churned away</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable</span>
+    <h3><span class="vk">E</span>Use-case clarity &amp; pain urgency</h3>
+    <p><b>Definition:</b> How specific, quantified, and painful the problem is.</p>
+    <p><b>Evidence:</b> Quantified pain ("20 hours per quote," "22% close ratio, goal is 30") vs. exploratory idea lists ("foreman in a box, scheduler in a box"); whether the use case stays stable or churns across calls.</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>Single quantified, urgent problem</div>
+      <div class="anch a3"><span class="n">3</span>Real pain but diffuse or shifting scope</div>
+      <div class="anch a1"><span class="n">1</span>Purely exploratory — "no problems today"</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable</span>
+    <h3><span class="vk">F</span>Technical / data readiness</h3>
+    <p><b>Definition:</b> Feasibility of actually deploying — systems landscape, data access, integration blockers.</p>
+    <p><b>Evidence:</b> Single modern instance vs. many fragmented ERPs/CRMs, API availability, master-data maturity, compliance constraints on data or LLM use.</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>Unified modern stack with APIs</div>
+      <div class="anch a3"><span class="n">3</span>Fragmented but workable</div>
+      <div class="anch a1"><span class="n">1</span>No APIs, no master data, or hard compliance blockers</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable · 5 = no friction</span>
+    <h3><span class="vk">G</span>Pricing / pilot-structure friction</h3>
+    <p><b>Definition:</b> Commercial objections <b>independent of ability to pay</b> — the reaction to the price and deal structure itself.</p>
+    <p><b>Evidence:</b> Sticker shock, clawback / risk-share / holdback demands, ROI-math challenges, commercial-model misfit (wants build-and-own vs. recurring), contract redline battles.</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>Price accepted without pushback</div>
+      <div class="anch a3"><span class="n">3</span>Friction raised but resolved cooperatively</div>
+      <div class="anch a1"><span class="n">1</span>Explicit rejection of price or model</div>
+    </div>
+  </div>
+
+  <div class="varblock"><span class="vtag">Variable · 5 = clear field</span>
+    <h3><span class="vk">H</span>Competing priorities / vendors</h3>
+    <p><b>Definition:</b> External and internal alternatives <b>crowding out</b> the deal — what else is competing for the same problem, budget, and attention.</p>
+    <p><b>Evidence:</b> Internal AI/engineering builds on the same use case, incumbent vendors, enterprise platform commitments (Google, Microsoft), parallel transformations (ERP migrations, M&amp;A integration), multi-vendor RFPs.</p>
+    <div class="anchors">
+      <div class="anch a5"><span class="n">5</span>No alternatives in play</div>
+      <div class="anch a3"><span class="n">3</span>Other initiatives exist but not directly overlapping</div>
+      <div class="anch a1"><span class="n">1</span>Direct internal build or incumbent actively competing for the same scope</div>
+    </div>
+  </div>
+
+  <div class="bvh">
+    <h3>B vs. H — the key distinction</h3>
+    <p><b>B asks: can they do this deal?</b> Capacity — money, people, approval. <b>H asks: will this deal win against everything else they could do instead?</b> Competition for the slot.</p>
+    <div class="cols">
+      <div class="col"><h5 class="bcol">High B, low H — displaced</h5>
+        <p>Odevo said "we can spend the money" (B fine) but the CTO's 15-engineer internal team was shipping the same product (H = 1, fatal). Low-H deals get <b>actively displaced</b>: Paschal → incumbent Netic, DTI → insourced.</p></div>
+      <div class="col"><h5>Low B, high H — starved</h5>
+        <p>Pharming had no competing vendor, but FDA limbo and layoffs left no budget or staff to buy anything. Low-B deals <b>stall softly</b>: unreturned emails, "drinking from a fire hose."</p></div>
+    </div>
+    <p style="margin-top:16px">Both discriminate advancing from stuck (B gap ≈ 1.2, H gap ≈ 1.1 on group averages), but H shows up as the <b>primary stated loss reason</b> most often — 7 of 10 non-advancing deals.</p>
+  </div>
+
+  <div class="fmt"><pre><span class="hd"># Deal Scorecard: [Company]</span>
+<b>Calls analyzed:</b> N of M unique (date range) | <b>Calls read:</b> [which] |
+<b>Evidence quality:</b> HIGH/MEDIUM/LOW + one clause why
+
+<span class="hd">## Scores</span>
+| Var | Score | Evidence (quote, call date) |
+(one row per A–H)
+
+<span class="hd">## Momentum trajectory</span>
+2–3 sentences: engagement/energy change call-over-call
+(attendees, cadence gaps, tone shift).
+
+<span class="hd">## Outcome signal (assessed AFTER scoring)</span>
+Advancing / stalled / lost, and why. 2–3 sentences.
+
+<span class="hd">## Most likely close-lost reason (if lost/stalled)</span>
+One primary + up to two secondary reasons.
+Confidence: STATED / IMPLIED / INFERRED.
+Single most diagnostic quote.
+(If advancing: top risk instead.)
+
+<span class="hd">## Flags for reviewer</span>
+Max 3 bullets — ambiguities, contradictions, data issues.</pre></div>
+</div></section>
+
 <section class="method" id="method"><div class="wrap">
   <div class="eyebrow">Methodology</div>
   <h2>Blind-coded, evidence-first, then compared.</h2>
@@ -268,7 +439,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 
 <footer><div class="wrap">
   <div>InstaLILY · Internal GTM analysis · Deep Dive → Proposal stage</div>
-  <div>Prepared July 2026 · Source: Fathom call transcripts, 17 deals</div>
+  <div>Prepared July 2026 · Source: Fathom call transcripts, 17 deals · <a href="#scoring" style="color:#b9b9cc">Scoring guide</a></div>
 </div></footer>
 
 <script>
@@ -345,7 +516,7 @@ const EV={
 "Renuity Homes":{A:["It's been a tough couple quarters, and we're doing some foundational work to fix that first.","Nirav · 04-22"],B:["These numbers do not go ahead... somehow I would not be able to justify this cost on an annual basis.","Shri relaying Mayank · 02-23"],C:["Patrick is the way we've got intro to you... he uses Instalily deployed across other businesses within the Greenbrier portfolio.","12-19 / 04-22"],D:["Champion churned: Mayank drove POC scoping in Dec; by April the contact was Nirav — 'this is my 13th day here.'","12-19 → 04-15"],E:["I wouldn't even say we're ready to utilize a tool with this kind of capability yet.","Nirav · 04-22; scope churned across 4+ use cases"],F:["We do not have a master data discipline... There is no concept of master data at this point in time here.","Mayank · 01-15"],G:["He was looking at something which can be more of Renuity build one time... and then we pay a minimum to no recurring cost every year.","Shri · 02-23 — direct model misfit"],H:["Thank you, everyone, for responding to the RFP... discuss with you and the other companies as well.","Shri · 02-23; internal 'Renuity Brain' build in parallel"]},
 "Paschal Air, Plumbing & Electric":{A:["Although we are growing rapidly and we are certainly able to innovate and remain nimble.","CFO · 06-23; ~400 people, 10–12 acquisitions since 2020"],B:["Our ability to just float... significant investments on our balance sheet with, candidly, like blue skies is a little bit more challenging.","CFO · 06-23"],C:["I underscored, I think it's the best, highest quality HVAC company in America.","John Straus (investor/advisor who brokered intro) · 05-05"],D:["The opportunity is there. think we all recognize that.","CEO Charley · 06-01 — CEO/CFO engaged, but nobody pulled for InstaLILY over the incumbent"],E:["The under $75 warranty submissions, which you guys aren't even doing right now.","06-01 — crisp use case, urgency deferred: 'pencils down' through peak season"],F:["All of those 12 locations are all on one Service Titan instance.","05-05; minor ServiceTitan API-limit questions"],G:["Does Paschal just eat the 60 grand? Or is [InstaLILY] willing to institute some sort of clawback? ... I'm struggling to kind of make that math work.","CFO + CEO · 06-01"],H:["It probably seems reasonable or prudent for us to let her take a stab at this just because she's already in operational and she has a track record.","CEO · 06-23 — incumbent Netic won the pilot"]}
 };
-const ORIGIN={A:"Hypothesis 1",B:"Hypothesis 1",C:"Hypothesis 2",D:"Control",E:"Control",F:"Control",G:"Control",H:"Control"};
+const ORIGIN={A:"Variable",B:"Variable",C:"Variable",D:"Variable",E:"Variable",F:"Variable",G:"Variable",H:"Variable"};
 const VNAMES={A:"Company health / growth",B:"Budget / bandwidth",C:"Deal source & validation",D:"Champion strength",E:"Use-case clarity & urgency",F:"Technical / data readiness",G:"Pricing / pilot friction",H:"Competing priorities / vendors"};
 
 const VARS=["A Health","B Bandwidth","C Source","D Champion","E Use case","F Data","G Pricing","H Priorities"];
